@@ -1,70 +1,84 @@
 // App.tsx
-import React, { Suspense, useEffect, useMemo, useRef } from "react";
+import React, { Suspense } from "react";
 import { View } from "react-native";
-import { Canvas, useFrame } from "@react-three/fiber/native";
-import { Points, PointMaterial, useGLTF } from "@react-three/drei/native";
-import * as THREE from "three";
+import { Canvas } from "@react-three/fiber/native";
 import Earth from "./src/components/Earth";
 import { StatusBar } from "expo-status-bar";
+import ShiningStars from "./src/components/ShiningStars";
+import OrbitCameraController from "./src/components/OrbitCameraController";
 
-export function ShiningStars({ count = 2000 }) {
-  const pointsRef = useRef();
+// function OrbitCameraController() {
+//   const { camera } = useThree();
+//   const radius = 5;
+//   const angle = useRef({ x: 0, y: 0 });
 
-  // Create random star positions and initial flicker speeds
-  const { positions, speeds } = useMemo(() => {
-    const arr = [];
-    const spd = [];
-    for (let i = 0; i < count; i++) {
-      arr.push(
-        THREE.MathUtils.randFloatSpread(300),
-        THREE.MathUtils.randFloatSpread(300),
-        THREE.MathUtils.randFloatSpread(300)
-      );
-      spd.push(Math.random() * 0.005 + 0.001); // each star moves slightly differently
-    }
-    return { positions: new Float32Array(arr), speeds: spd };
-  }, [count]);
+//   const isDragging = useRef(false);
+//   const lastPos = useRef({ x: 0, y: 0 });
 
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    const geometry = pointsRef.current.geometry;
-    const posAttr = geometry.attributes.position;
+//   const handlePointerDown = (e) => {
+//     console.log("Pointer Down", e.nativeEvent);
+//     isDragging.current = true;
+//     lastPos.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
+//   };
 
-    for (let i = 0; i < posAttr.count; i++) {
-      const y = posAttr.getY(i);
-      const speed = speeds[i];
-      posAttr.setY(i, y + Math.sin(t * speed + i) * 0.01); // vertical shimmer
-    }
-    posAttr.needsUpdate = true;
+//   const handlePointerUp = () => {
+//     console.log("Pointer Up");
+//     isDragging.current = false;
+//   };
 
-    if (pointsRef.current?.material) {
-      pointsRef.current.material.opacity = 0.7 + Math.sin(t * 2) * 0.3;
-    }
-  });
+//   const handlePointerMove = (e) => {
+//     console.log("Pointer Move", e.nativeEvent);
+//     if (!isDragging.current) return;
 
-  return (
-    <Points ref={pointsRef} positions={positions} frustumCulled>
-      <PointMaterial
-        color="#ffffff"
-        size={0.6}
-        sizeAttenuation
-        transparent
-        depthWrite={false}
-      />
-    </Points>
-  );
-}
+//     const deltaX = e.nativeEvent.pageX - lastPos.current.x;
+//     const deltaY = e.nativeEvent.pageY - lastPos.current.y;
+
+//     angle.current.x -= deltaX * 0.005;
+//     angle.current.y += deltaY * 0.005;
+
+//     // Clamp vertical angle
+//     angle.current.y = THREE.MathUtils.clamp(
+//       angle.current.y,
+//       -Math.PI / 2.2,
+//       Math.PI / 2.2
+//     );
+
+//     lastPos.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
+//   };
+
+//   useFrame(() => {
+//     const x = Math.sin(angle.current.x) * radius;
+//     const z = Math.cos(angle.current.x) * radius;
+//     const y = Math.sin(angle.current.y) * radius;
+
+//     camera.position.set(x, y, z);
+//     camera.lookAt(0, 0, 0);
+//   });
+//   return (
+//     <mesh
+//       position={[0, 0, 0]}
+//       onPointerDown={handlePointerDown}
+//       onPointerMove={handlePointerMove}
+//       onPointerUp={handlePointerUp}
+//       onPointerLeave={handlePointerUp}
+//     >
+//       <planeGeometry args={[1000, 1000]} />
+//       <meshBasicMaterial transparent opacity={0} />
+//     </mesh>
+//   );
+// }
 export default function App() {
   return (
     <View style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
         <color attach="background" args={["#000011"]} />
-        {/* <ambientLight intensity={1} /> */}
+        <ambientLight intensity={1} />
         <directionalLight position={[10, 10, 10]} intensity={2} />
         <Suspense fallback={null}>
           <ShiningStars />
           <Earth />
+          <OrbitCameraController />
         </Suspense>
       </Canvas>
     </View>
