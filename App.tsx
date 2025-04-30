@@ -1,86 +1,90 @@
-// App.tsx
-import React, { Suspense } from "react";
-import { View } from "react-native";
+import React, { Suspense, useEffect, useRef, useState } from "react";
+import { View, StyleSheet, PanResponder, Dimensions } from "react-native";
 import { Canvas } from "@react-three/fiber/native";
+import * as THREE from "three";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 import Earth from "./src/components/Earth";
-import { StatusBar } from "expo-status-bar";
-import ShiningStars from "./src/components/ShiningStars";
 import OrbitCameraController from "./src/components/OrbitCameraController";
+import ShiningStars from "./src/components/ShiningStars";
+import Header from "./src/components/Header";
 
-// function OrbitCameraController() {
-//   const { camera } = useThree();
-//   const radius = 5;
-//   const angle = useRef({ x: 0, y: 0 });
-
-//   const isDragging = useRef(false);
-//   const lastPos = useRef({ x: 0, y: 0 });
-
-//   const handlePointerDown = (e) => {
-//     console.log("Pointer Down", e.nativeEvent);
-//     isDragging.current = true;
-//     lastPos.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
-//   };
-
-//   const handlePointerUp = () => {
-//     console.log("Pointer Up");
-//     isDragging.current = false;
-//   };
-
-//   const handlePointerMove = (e) => {
-//     console.log("Pointer Move", e.nativeEvent);
-//     if (!isDragging.current) return;
-
-//     const deltaX = e.nativeEvent.pageX - lastPos.current.x;
-//     const deltaY = e.nativeEvent.pageY - lastPos.current.y;
-
-//     angle.current.x -= deltaX * 0.005;
-//     angle.current.y += deltaY * 0.005;
-
-//     // Clamp vertical angle
-//     angle.current.y = THREE.MathUtils.clamp(
-//       angle.current.y,
-//       -Math.PI / 2.2,
-//       Math.PI / 2.2
-//     );
-
-//     lastPos.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
-//   };
-
-//   useFrame(() => {
-//     const x = Math.sin(angle.current.x) * radius;
-//     const z = Math.cos(angle.current.x) * radius;
-//     const y = Math.sin(angle.current.y) * radius;
-
-//     camera.position.set(x, y, z);
-//     camera.lookAt(0, 0, 0);
-//   });
-//   return (
-//     <mesh
-//       position={[0, 0, 0]}
-//       onPointerDown={handlePointerDown}
-//       onPointerMove={handlePointerMove}
-//       onPointerUp={handlePointerUp}
-//       onPointerLeave={handlePointerUp}
-//     >
-//       <planeGeometry args={[1000, 1000]} />
-//       <meshBasicMaterial transparent opacity={0} />
-//     </mesh>
-//   );
-// }
 export default function App() {
+  const [zoomLevel, setZoomLevel] = useState(5);
+  const baseZoomRef = useRef(5);
+  const initialDistance = useRef(0); // renamed from lastDistance
+
+  const forceUpdate = useRef(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+
+      onPanResponderMove: (evt) => {
+        const touches = evt.nativeEvent.touches;
+
+        if (touches.length === 2) {
+          const dx = touches[0].pageX - touches[1].pageX;
+          const dy = touches[0].pageY - touches[1].pageY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (initialDistance.current === null) {
+            initialDistance.current = distance;
+          }
+
+          const scale = distance / initialDistance.current;
+          console.log("Scale:", baseZoomRef.current, scale);
+          const newZoom = THREE.MathUtils.clamp(
+            baseZoomRef.current / scale,
+            3,
+            15
+          );
+
+          setZoomLevel(newZoom);
+          console.log("Zoom Level:", newZoom);
+        }
+      },
+
+      // Triggered when all touches end
+      onPanResponderRelease: () => {
+        console.log("Released", zoomLevel);
+        baseZoomRef.current = zoomLevel;
+        forceUpdate.current = !forceUpdate.current;
+        initialDistance.current = null;
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    console.log("Zoom Level Updated:", zoomLevel);
+    baseZoomRef.current = zoomLevel;
+  }, [forceUpdate.current]);
+
   return (
-    <View style={{ flex: 1 }}>
-      <StatusBar style="light" />
-      <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-        <color attach="background" args={["#000011"]} />
-        <ambientLight intensity={1} />
-        <directionalLight position={[10, 10, 10]} intensity={2} />
-        <Suspense fallback={null}>
-          <ShiningStars />
-          <Earth />
-          <OrbitCameraController />
-        </Suspense>
-      </Canvas>
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <Header />
+
+        {/* Canvas renders 3D space */}
+        <Canvas camera={{ position: [0, 0, zoomLevel], fov: 75 }}>
+          <color attach="background" args={["#000011"]} />
+          <ambientLight intensity={1} />
+          <directionalLight position={[10, 10, 10]} intensity={2} />
+          <Suspense fallback={null}>
+            <ShiningStars />
+            <Earth />
+            <OrbitCameraController zoomLevel={zoomLevel} />
+          </Suspense>
+        </Canvas>
+
+        {/* Overlay that captures pinch gestures */}
+        <View
+          {...panResponder.panHandlers}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="box-only"
+        />
+      </View>
+    </GestureHandlerRootView>
   );
 }

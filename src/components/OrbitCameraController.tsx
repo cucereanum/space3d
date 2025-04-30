@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber/native";
+import { useSharedValue } from "react-native-reanimated";
 
-const OrbitCameraController = () => {
-  const { camera } = useThree(); // get camera from context
+const OrbitCameraController = ({ zoomLevel }: { zoomLevel: number }) => {
+  const { camera } = useThree();
+  const baseZoom = useRef(zoomLevel);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    const radius = 5;
-    const x = Math.sin(t * 0.1) * radius;
-    const z = Math.cos(t * 0.1) * radius;
+    const distance = zoomLevel; // use pinch distance
+
+    const x = Math.sin(t * 0.05) * distance;
+    const z = Math.cos(t * 0.05) * distance;
 
     camera.position.set(x, 1.5, z);
     camera.lookAt(0, 0, 0);

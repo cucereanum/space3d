@@ -1,9 +1,8 @@
 import React, { useMemo, useRef } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber/native";
 import { Points, PointMaterial, useGLTF } from "@react-three/drei/native";
 import * as THREE from "three";
 
-const ShiningStars = ({ count = 2000 }) => {
+const ShiningStars = ({ count = 10000 }) => {
   const pointsRef = useRef();
 
   const { positions, speeds } = useMemo(() => {
@@ -20,35 +19,11 @@ const ShiningStars = ({ count = 2000 }) => {
     return { positions: new Float32Array(arr), speeds: spd };
   }, [count]);
 
-  useFrame((state, delta) => {
-    if (!pointsRef.current) return;
-
-    const t = state.clock.elapsedTime;
-
-    // limit frequency
-    if (delta > 0.03) return; // throttle to 30 fps max
-
-    const geometry = pointsRef.current.geometry;
-    const posAttr = geometry.attributes.position;
-
-    for (let i = 0; i < posAttr.count; i++) {
-      const y = posAttr.getY(i);
-      const speed = speeds[i];
-      posAttr.setY(i, y + Math.sin(t * speed + i) * 0.01);
-    }
-
-    posAttr.needsUpdate = true;
-
-    if (pointsRef.current.material) {
-      pointsRef.current.material.opacity = 0.7 + Math.sin(t * 2) * 0.3;
-    }
-  });
-
   return (
     <Points ref={pointsRef} positions={positions} frustumCulled>
       <PointMaterial
-        color="#ffffff"
-        size={0.6}
+        color="yellow"
+        size={0.4}
         sizeAttenuation
         transparent
         depthWrite={false}
@@ -58,3 +33,50 @@ const ShiningStars = ({ count = 2000 }) => {
 };
 
 export default ShiningStars;
+
+// import React, { useMemo, useRef } from "react";
+// import { useGLTF } from "@react-three/drei/native";
+// import { useFrame } from "@react-three/fiber/native";
+// import * as THREE from "three";
+
+// import StarGlb from "../../assets/models/star.glb";
+
+// const ShiningStars = ({ count = 200 }) => {
+//   const { scene: starModel } = useGLTF(StarGlb);
+//   const groupRef = useRef();
+
+//   const stars = useMemo(() => {
+//     const arr = [];
+//     for (let i = 0; i < count; i++) {
+//       const position = new THREE.Vector3(
+//         THREE.MathUtils.randFloatSpread(300),
+//         THREE.MathUtils.randFloatSpread(300),
+//         THREE.MathUtils.randFloatSpread(300)
+//       );
+//       arr.push(position);
+//     }
+//     return arr;
+//   }, [count]);
+
+//   useFrame((state) => {
+//     if (!groupRef.current) return;
+
+//     groupRef.current.rotation.y += 0.001;
+//     groupRef.current.rotation.x += 0.0005;
+//   });
+
+//   return (
+//     <group ref={groupRef}>
+//       {stars.map((pos, index) => (
+//         <primitive
+//           key={index}
+//           object={starModel.clone()} // very important: clone it
+//           position={pos}
+//           scale={[3, 3, 3]}
+//         />
+//       ))}
+//     </group>
+//   );
+// };
+
+// export default ShiningStars;
