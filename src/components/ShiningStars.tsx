@@ -1,31 +1,67 @@
 import React, { useMemo, useRef } from "react";
-import { Points, PointMaterial, useGLTF } from "@react-three/drei/native";
+import { Points } from "@react-three/drei/native";
 import * as THREE from "three";
 
-const ShiningStars = ({ count = 10000 }) => {
+const StarColors = ["#ffffff", "#dddddd", "#ffffaa", "#ffaa55", "#ff8888"];
+
+const ShiningStars = ({ count = 8000 }) => {
   const pointsRef = useRef();
 
-  const { positions, speeds } = useMemo(() => {
-    const arr = [];
+  const { positions, colors, sizes, speeds } = useMemo(() => {
+    const pos = [];
+    const col = [];
+    const sizeArr = [];
     const spd = [];
+
     for (let i = 0; i < count; i++) {
-      arr.push(
-        THREE.MathUtils.randFloatSpread(300),
-        THREE.MathUtils.randFloatSpread(300),
-        THREE.MathUtils.randFloatSpread(300)
+      let x, y, z;
+
+      // Keep stars away from the solar system (e.g., 20+ units from center)
+      do {
+        x = THREE.MathUtils.randFloatSpread(300);
+        y = THREE.MathUtils.randFloatSpread(300);
+        z = THREE.MathUtils.randFloatSpread(300);
+      } while (Math.sqrt(x * x + y * y + z * z) < 30);
+
+      pos.push(x, y, z);
+
+      // Random color from selection
+      const color = new THREE.Color(
+        StarColors[Math.floor(Math.random() * StarColors.length)]
       );
+      col.push(color.r, color.g, color.b);
+
+      // Random size (small, subtle)
+      sizeArr.push(Math.random() * 0.4 + 0.2);
+
+      // Flicker speed
       spd.push(Math.random() * 0.005 + 0.001);
     }
-    return { positions: new Float32Array(arr), speeds: spd };
+
+    return {
+      positions: new Float32Array(pos),
+      colors: new Float32Array(col),
+      sizes: new Float32Array(sizeArr),
+      speeds: spd,
+    };
   }, [count]);
 
+  // Optional: use useFrame to animate flicker/shimmer
+
   return (
-    <Points ref={pointsRef} positions={positions} frustumCulled>
-      <PointMaterial
-        color="yellow"
-        size={0.4}
+    <Points
+      ref={pointsRef}
+      positions={positions}
+      colors={colors}
+      frustumCulled
+      stride={3}
+    >
+      <pointsMaterial
+        vertexColors
+        size={0.3}
         sizeAttenuation
         transparent
+        opacity={0.3}
         depthWrite={false}
       />
     </Points>
@@ -33,50 +69,3 @@ const ShiningStars = ({ count = 10000 }) => {
 };
 
 export default ShiningStars;
-
-// import React, { useMemo, useRef } from "react";
-// import { useGLTF } from "@react-three/drei/native";
-// import { useFrame } from "@react-three/fiber/native";
-// import * as THREE from "three";
-
-// import StarGlb from "../../assets/models/star.glb";
-
-// const ShiningStars = ({ count = 200 }) => {
-//   const { scene: starModel } = useGLTF(StarGlb);
-//   const groupRef = useRef();
-
-//   const stars = useMemo(() => {
-//     const arr = [];
-//     for (let i = 0; i < count; i++) {
-//       const position = new THREE.Vector3(
-//         THREE.MathUtils.randFloatSpread(300),
-//         THREE.MathUtils.randFloatSpread(300),
-//         THREE.MathUtils.randFloatSpread(300)
-//       );
-//       arr.push(position);
-//     }
-//     return arr;
-//   }, [count]);
-
-//   useFrame((state) => {
-//     if (!groupRef.current) return;
-
-//     groupRef.current.rotation.y += 0.001;
-//     groupRef.current.rotation.x += 0.0005;
-//   });
-
-//   return (
-//     <group ref={groupRef}>
-//       {stars.map((pos, index) => (
-//         <primitive
-//           key={index}
-//           object={starModel.clone()} // very important: clone it
-//           position={pos}
-//           scale={[3, 3, 3]}
-//         />
-//       ))}
-//     </group>
-//   );
-// };
-
-// export default ShiningStars;

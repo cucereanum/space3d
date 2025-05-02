@@ -1,5 +1,12 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
-import { View, StyleSheet, PanResponder, Dimensions } from "react-native";
+import {
+  View,
+  StyleSheet,
+  PanResponder,
+  Dimensions,
+  TouchableOpacity,
+  Text,
+} from "react-native";
 import { Canvas } from "@react-three/fiber/native";
 import * as THREE from "three";
 
@@ -7,11 +14,15 @@ import Earth from "../components/Earth";
 import OrbitCameraController from "../components/OrbitCameraController";
 import ShiningStars from "../components/ShiningStars";
 import Header from "../components/Header";
+import Sun from "../components/Sun";
+import Venus from "../components/Venus";
+import Mercury from "../components/Mercury";
+import Mars from "../components/Mars";
 
 const HomeScreen = () => {
   const [zoomLevel, setZoomLevel] = useState(5);
   const [angle, setAngle] = useState(0); // camera rotation angle
-
+  const [realisticLighting, setRealisticLighting] = useState(false);
   const baseAngleRef = useRef(0); // renamed from lastAngle
   const baseZoomRef = useRef(5);
   const initialDistance = useRef<number | null>(0); // renamed from lastDistance
@@ -54,7 +65,6 @@ const HomeScreen = () => {
           }
 
           const scale = distance / initialDistance.current;
-          console.log("Scale:", baseZoomRef.current, scale);
           const newZoom = THREE.MathUtils.clamp(
             baseZoomRef.current / scale,
             3,
@@ -62,7 +72,6 @@ const HomeScreen = () => {
           );
 
           setZoomLevel(newZoom);
-          console.log("Zoom Level:", newZoom);
         }
       },
 
@@ -82,7 +91,6 @@ const HomeScreen = () => {
   ).current;
 
   useEffect(() => {
-    console.log("Zoom Level Updated:", zoomLevel);
     baseZoomRef.current = zoomLevel;
     baseAngleRef.current = angle;
     setIsTouching(false);
@@ -95,11 +103,24 @@ const HomeScreen = () => {
       {/* Canvas renders 3D space */}
       <Canvas camera={{ position: [0, 0, zoomLevel], fov: 75 }}>
         <color attach="background" args={["#000011"]} />
-        <ambientLight intensity={1} />
-        <directionalLight position={[10, 10, 10]} intensity={2} />
+        {realisticLighting ? (
+          <>
+            <ambientLight intensity={0} />
+            <directionalLight position={[-20, 0, 0]} intensity={2} />
+          </>
+        ) : (
+          <>
+            <ambientLight intensity={1.5} />
+            <directionalLight position={[5, 5, 5]} intensity={0.5} />
+          </>
+        )}
         <Suspense fallback={null}>
           <ShiningStars />
+          <Mercury />
           <Earth />
+          <Venus />
+          <Mars />
+          <Sun />
           <OrbitCameraController
             zoomLevel={zoomLevel}
             manualAngle={angle}
@@ -114,6 +135,22 @@ const HomeScreen = () => {
         style={StyleSheet.absoluteFill}
         pointerEvents="box-only"
       />
+      <TouchableOpacity
+        onPress={() => setRealisticLighting(!realisticLighting)}
+        style={{
+          position: "absolute",
+          bottom: 40,
+          left: 20,
+          backgroundColor: "#ffffff33",
+          padding: 10,
+          borderRadius: 10,
+          zIndex: 1000,
+        }}
+      >
+        <Text style={{ color: "white" }}>
+          Toggle Lighting: {realisticLighting ? "Realistic" : "Global"}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
