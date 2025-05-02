@@ -18,6 +18,10 @@ import Sun from "../components/Sun";
 import Venus from "../components/Venus";
 import Mercury from "../components/Mercury";
 import Mars from "../components/Mars";
+import Jupiter from "../components/Jupiter";
+import Saturn from "../components/Saturn";
+import Uranus from "../components/Uranus";
+import Neptune from "../components/Neptune";
 
 const HomeScreen = () => {
   const [zoomLevel, setZoomLevel] = useState(5);
@@ -27,6 +31,7 @@ const HomeScreen = () => {
   const baseZoomRef = useRef(5);
   const initialDistance = useRef<number | null>(0); // renamed from lastDistance
   const lastTouchX = useRef<number | null>(0);
+  const earthRef = useRef<THREE.Object3D>(null);
 
   const [isTouching, setIsTouching] = useState(false);
 
@@ -98,8 +103,6 @@ const HomeScreen = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <Header />
-
       {/* Canvas renders 3D space */}
       <Canvas camera={{ position: [0, 0, zoomLevel], fov: 75 }}>
         <color attach="background" args={["#000011"]} />
@@ -116,10 +119,16 @@ const HomeScreen = () => {
         )}
         <Suspense fallback={null}>
           <ShiningStars />
+          <Saturn />
           <Mercury />
           <Earth />
           <Venus />
           <Mars />
+          <Jupiter />
+
+          <Uranus />
+          <Neptune />
+
           <Sun />
           <OrbitCameraController
             zoomLevel={zoomLevel}
