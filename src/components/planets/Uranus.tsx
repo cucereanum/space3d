@@ -3,7 +3,7 @@ import { useGLTF } from "@react-three/drei/native";
 import { useFrame } from "@react-three/fiber/native";
 import * as THREE from "three";
 
-import uranusModel from "../../assets/models/uranus.glb";
+import uranusModel from "../../../assets/models/uranus.glb";
 
 const Uranus = () => {
   const { scene } = useGLTF(uranusModel);

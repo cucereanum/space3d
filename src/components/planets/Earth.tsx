@@ -3,8 +3,8 @@ import { useFrame } from "@react-three/fiber/native";
 import { useGLTF } from "@react-three/drei/native";
 import * as THREE from "three";
 
-import EarthGlb from "../../assets/models/earth.glb";
-import MoonGlb from "../../assets/models/moon.glb";
+import EarthGlb from "../../../assets/models/earth.glb";
+import MoonGlb from "../../../assets/models/moon.glb";
 
 const Earth = () => {
   const { scene: earthScene } = useGLTF(EarthGlb);

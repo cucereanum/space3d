@@ -10,29 +10,30 @@ import {
 import { Canvas } from "@react-three/fiber/native";
 import * as THREE from "three";
 
-import Earth from "../components/Earth";
+import Earth from "../components/planets/Earth";
 import OrbitCameraController from "../components/OrbitCameraController";
 import ShiningStars from "../components/ShiningStars";
-import Header from "../components/Header";
 import Sun from "../components/Sun";
-import Venus from "../components/Venus";
-import Mercury from "../components/Mercury";
-import Mars from "../components/Mars";
-import Jupiter from "../components/Jupiter";
+import Venus from "../components/planets/Venus";
+import Mercury from "../components/planets/Mercury";
+import Mars from "../components/planets/Mars";
+import Jupiter from "../components/planets/Jupiter";
 import Saturn from "../components/Saturn";
-import Uranus from "../components/Uranus";
-import Neptune from "../components/Neptune";
+import Uranus from "../components/planets/Uranus";
+import Neptune from "../components/planets/Neptune";
+import LoadingScreen from "./LoadingScreen";
+import { useProgress } from "@react-three/drei";
+import LoadingView from "../components/LoadingView";
 
 const HomeScreen = () => {
   const [zoomLevel, setZoomLevel] = useState(200);
   const [angle, setAngle] = useState(0); // camera rotation angle
   const [realisticLighting, setRealisticLighting] = useState(false);
   const baseAngleRef = useRef(0); // renamed from lastAngle
-  const baseZoomRef = useRef(200);
+  const baseZoomRef = useRef(300);
   const initialDistance = useRef<number | null>(0); // renamed from lastDistance
   const lastTouchX = useRef<number | null>(0);
-  const earthRef = useRef<THREE.Object3D>(null);
-
+  const { progress } = useProgress();
   const [isTouching, setIsTouching] = useState(false);
 
   const forceUpdate = useRef(false);
@@ -73,7 +74,7 @@ const HomeScreen = () => {
           const newZoom = THREE.MathUtils.clamp(
             baseZoomRef.current / scale,
             3,
-            200
+            400
           );
 
           setZoomLevel(newZoom);
@@ -103,6 +104,7 @@ const HomeScreen = () => {
 
   return (
     <View style={{ flex: 1 }}>
+      {progress < 100 && <LoadingView progress={progress} />}
       {/* Canvas renders 3D space */}
       <Canvas camera={{ position: [0, 0, zoomLevel], fov: 75 }}>
         <color attach="background" args={["#000011"]} />
