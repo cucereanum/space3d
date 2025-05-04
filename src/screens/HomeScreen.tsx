@@ -24,11 +24,11 @@ import Uranus from "../components/Uranus";
 import Neptune from "../components/Neptune";
 
 const HomeScreen = () => {
-  const [zoomLevel, setZoomLevel] = useState(5);
+  const [zoomLevel, setZoomLevel] = useState(200);
   const [angle, setAngle] = useState(0); // camera rotation angle
   const [realisticLighting, setRealisticLighting] = useState(false);
   const baseAngleRef = useRef(0); // renamed from lastAngle
-  const baseZoomRef = useRef(5);
+  const baseZoomRef = useRef(200);
   const initialDistance = useRef<number | null>(0); // renamed from lastDistance
   const lastTouchX = useRef<number | null>(0);
   const earthRef = useRef<THREE.Object3D>(null);
@@ -73,7 +73,7 @@ const HomeScreen = () => {
           const newZoom = THREE.MathUtils.clamp(
             baseZoomRef.current / scale,
             3,
-            15
+            200
           );
 
           setZoomLevel(newZoom);

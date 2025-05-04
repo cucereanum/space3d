@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber/native";
 import { useGLTF } from "@react-three/drei/native";
 import * as THREE from "three";
@@ -9,38 +9,42 @@ import MoonGlb from "../../assets/models/moon.glb";
 const Earth = () => {
   const { scene: earthScene } = useGLTF(EarthGlb);
   const { scene: moonScene } = useGLTF(MoonGlb);
-  const moonRef = useRef<THREE.Object3D>();
-  const moonOrbitRef = useRef<THREE.Group>();
+
+  const earthOrbitRef = useRef<THREE.Group>(null);
+  const earthRef = useRef<THREE.Object3D>(null);
+  const moonOrbitRef = useRef<THREE.Group>(null);
 
   useEffect(() => {
-    // Scale Earth
+    // Earth scale & local position (relative to orbit group)
     earthScene.scale.set(0.15, 0.15, 0.15);
+    earthScene.position.set(0, 0, 0);
 
-    // Scale Moon smaller
+    // Moon scale & local offset from Earth
     moonScene.scale.set(0.2, 0.2, 0.2);
-
-    // Position Moon at some distance along X axis initially
-    moonScene.position.set(3, 0, 0);
+    moonScene.position.set(3, 0, 0); // Offset from Earth, not global position
   }, [earthScene, moonScene]);
 
-  useFrame((state, delta) => {
-    // Rotate Earth slowly
-    earthScene.rotation.y += 0.005;
+  useFrame((_, delta) => {
+    if (earthOrbitRef.current) {
+      earthOrbitRef.current.rotation.y += 0.0001; // Earth orbit around Sun
+    }
 
-    // Rotate Moon Orbit around Earth
+    if (earthRef.current) {
+      earthRef.current.rotation.y += 0.0005; // Earth self-rotation
+    }
+
     if (moonOrbitRef.current) {
-      moonOrbitRef.current.rotation.y += 0.003; // control speed of moon orbit
+      moonOrbitRef.current.rotation.y += 0.00003; // Moon orbit around Earth
     }
   });
 
   return (
-    <group>
-      {/* Earth */}
-      <primitive object={earthScene} />
-
-      {/* Moon orbiting around Earth */}
-      <group ref={moonOrbitRef}>
-        <primitive object={moonScene} ref={moonRef} />
+    <group ref={earthOrbitRef} position={[-200, 0, 0]}>
+      <group ref={earthRef} position={[200, 0, 0]}>
+        <primitive object={earthScene} />
+        <group ref={moonOrbitRef}>
+          <primitive object={moonScene} />
+        </group>
       </group>
     </group>
   );

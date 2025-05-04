@@ -12,33 +12,34 @@ const OrbitCameraController = ({
 }) => {
   const { camera } = useThree();
   const elapsed = useRef(0);
-  const baseAngle = useRef(0);
+  const baseAngle = useRef(Math.PI / 4); // starting from top-right
   const wasTouching = useRef(false);
 
-  useFrame((state, delta) => {
+  const fixedY = zoomLevel * 0.6; // elevated view
+  const distance = zoomLevel;
+
+  useFrame((_, delta) => {
     let angle;
 
-    // Detect touch release
     if (wasTouching.current && !isTouching) {
-      // Touch just ended: resume from current manual angle
       baseAngle.current = manualAngle;
-      elapsed.current = 0; // reset internal timer
+      elapsed.current = 0;
     }
 
     wasTouching.current = isTouching;
+
     if (isTouching) {
-      // While touching: use manual angle
       angle = manualAngle;
     } else {
-      // Auto-rotate after release
       elapsed.current += delta;
-      angle = baseAngle.current + elapsed.current * 0.05;
+      angle = baseAngle.current + elapsed.current * 0.015; // slow orbit
     }
-    const x = Math.sin(angle) * zoomLevel;
-    const z = Math.cos(angle) * zoomLevel;
 
-    camera.position.set(x, 1.5, z);
-    camera.lookAt(0, 0, 0);
+    const x = Math.sin(angle) * distance;
+    const z = Math.cos(angle) * distance;
+
+    camera.position.set(x, fixedY, z);
+    camera.lookAt(0, 0, 0); // center (Sun)
   });
 
   return null;

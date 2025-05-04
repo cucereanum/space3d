@@ -17,7 +17,7 @@ const Mars = () => {
 
   useFrame((_, delta) => {
     if (orbitRef.current) {
-      orbitRef.current.rotation.y += 0.03 * delta; // Mars orbit speed
+      orbitRef.current.rotation.y += 0.01 * delta; // Mars orbit speed
     }
     if (marsRef.current) {
       marsRef.current.rotation.y += 0.001 * delta; // Mars self-rotation
